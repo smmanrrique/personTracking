@@ -7,15 +7,14 @@ import numpy as np
 from glob import glob
 import tensorflow as tf
 import plot_ellipse as e
-import plotly.graph_objects as go
 from matplotlib import pyplot as plt
 from imutils.object_detection import non_max_suppression
 
 
 # %%
 # get all image into the path
-paths0 = sorted([str(i) for i in glob("./src/data/*_c0.pgm")])
-paths1 = sorted([str(i) for i in glob("./src/data/*_c1.pgm")])
+paths0 = sorted([str(i) for i in glob("./data/*_c0.pgm")])
+paths1 = sorted([str(i) for i in glob("./data/*_c1.pgm")])
 
 # initialize the HOG descriptor/person detector
 hog = cv2.HOGDescriptor()
@@ -37,13 +36,13 @@ blue = (255, 0, 0)
 center_blue = []
 
 # Fotograph by second
-fps = 44
+fps = 50
 # Define Deltas
 dt = 1/fps
 # used in Matrix of estimation error Q
-dq = 95
+dq = 0.01
 # used in Matrix of detector error R
-dr = 20
+dr = 0.01
 
 # init U0
 U0 = np.array([[0, 0, 0, 0]], np.float32).T
@@ -59,6 +58,16 @@ A = np.array([[1, 0, dt, 0],
               [0, 1, 0, dt],
               [0, 0, 1, 0],
               [0, 0, 0, 1]], np.float32)
+
+# Input effect matrix
+B = np.array([[dt**2, 0],
+              [0, dt**2],
+              [0, 0],
+              [0, 0]], np.float32)
+
+# Constant matrix to multiply B
+a = np.array([[4], [3]], np.float32)
+
 
 # Noices of covariances matrix
 Q = np.array([[dq, 0, 0, 0],
@@ -81,8 +90,6 @@ def get_vec(box):
 
 
 def get_xy(vector):
-    # px_ = box[0, 0] + box[0, 2]/2
-    # py_ = box[0, 1] + box[0, 3]/2
     center = int(vector[0] + .5), int(vector[1] + .5)
     return center
 
@@ -101,7 +108,8 @@ for imagePath in paths1:
     if not first_time:
         center_red.append(get_xy(U0))
         # Prediction
-        U1 = A@U0
+        # U1 = A@U0 + B@a
+        U1 = A@U0 + B@U0[:2]
         S1 = ((A@S0)@(A.T)) + Q
         e.plot_ellipse(image, U1[:2], S0[:2, :2], red)
         U0 = U1
@@ -154,12 +162,11 @@ groups = ("Prediction", "Detection", "Update")
 for cent, color, group in zip(data, colors, groups):
     x_only, y_only = zip(*cent)
     ax.plot(x_only, y_only, color,  alpha=0.8, label=group)
-    # ax.plot(x, y, 'r-', alpha=0.9, c=color,
-    #         label=group)
 
 plt.title('Kalman Kilter')
 plt.legend(loc=2)
-plt.savefig("kalman_filter.png")
+plt.savefig("./plots/kalman_filter(dr="+str(dr) +
+            ", dq="+str(dq)+", dt="+str(dt)+".png")
 plt.show()
 
 
