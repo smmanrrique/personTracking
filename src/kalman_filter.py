@@ -40,9 +40,9 @@ fps = 50
 # Define Deltas
 dt = 1/fps
 # used in Matrix of estimation error Q
-dq = 0.01
+dq = 85
 # used in Matrix of detector error R
-dr = 0.01
+dr = 11
 
 # init U0
 U0 = np.array([[0, 0, 0, 0]], np.float32).T
@@ -109,9 +109,10 @@ for imagePath in paths1:
         center_red.append(get_xy(U0))
         # Prediction
         # U1 = A@U0 + B@a
+        # S1 = A@S0(matrix 4x4 de zeros)@
         U1 = A@U0 + B@U0[:2]
-        S1 = ((A@S0)@(A.T)) + Q
-        e.plot_ellipse(image, U1[:2], S0[:2, :2], red)
+        S1 = ((A@S0)@(A.T)) + Q  # El error de tu modelo  las matriz son 4x4  4x4  + 4X4 
+        e.plot_ellipse(image, U1[:2], S0[:2, :2], red)   # S0 inicial es una matriz de ceros
         U0 = U1
         S0 = S1
 
@@ -133,6 +134,8 @@ for imagePath in paths1:
     # First detection
     elif len(rectangles) > 0:
         U0 = get_vec(rectangles)
+        print(U0)
+        break
         first_time = False
 
     # draw the original bounding boxes

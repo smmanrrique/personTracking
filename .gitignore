@@ -39,11 +39,17 @@ Generated\ Files/
 # NUNIT
 *.VisualState.xml
 TestResult.xml
-
+__pycache__/
+*pycache*/
+track/*
+track/
+./track/*
 # Build Results of an ATL Project
 [Dd]ebugPS/
 [Rr]eleasePS/
 dlldata.c
+./src/data/*
+src/data/*
 
 # Benchmark Results
 BenchmarkDotNet.Artifacts/
@@ -328,3 +334,6 @@ ASALocalRun/
 
 # MFractors (Xamarin productivity tool) working folder 
 .mfractor/
+__pycache__
+track/*
+**.vscode
